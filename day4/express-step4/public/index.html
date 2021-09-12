@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <script src="lib/jquery-3.6.0.js"></script>
+    <script>
+        var friendslist = [];
+        var showAddbox = false;
+        function toggleBox(){
+            if(showAddbox){
+                $("#addBox").show();
+                $("#showAddBtn").hide();
+            }else{
+                $("#addBox").hide();
+                $("#showAddBtn").show();
+            }
+        }
+        $(function(){
+            toggleBox();
+            loadFriends();
+            //-----------------------
+            $("#editBox").hide();
+            //-----------------------
+            $("#showAddBtn").on("click", function(){
+                showAddbox = true;
+                toggleBox();
+            });
+ 
+            $("#friendgrid").on("click","button.delBtn", function(evt){
+                // alert("you clicked the delete button");
+                // alert("selected friend's id to delete "+ $(evt.target).attr('info'));
+                // alert("selected friend's id to delete "+evt.target.getAttribute("info"));
+                $.ajax({
+                    method : "delete",
+                    url : "/friends/delete/"+$(evt.target).attr('info'),
+                    success : function( res ){ console.log( res ); loadFriends(); },
+                    error : function(err){ console.log(err) }
+                })
+            });
+ 
+            //----------------------------------------------------------
+            // EDITING FRIEND's INFO 
+            $("#friendgrid").on("click","button.editBtn", function(evt){
+                $.ajax({
+                    method : "get",
+                    url : "/friends/edit/"+$(evt.target).attr('info'),
+                    success : function( res ){ 
+                        console.log( res ); 
+                        $("#editBox").show(500);
+                        $("#edit_name").val(res.name);
+                        $("#edit_email").val(res.email);
+                        $("#edit_city").val(res.city);
+                        $("#editFriendId").val(res._id);
+                    },
+                    error : function(err){ console.log(err) }
+                })
+            });
+            $("#updateInfobtn").on("click", function(){
+                var updatedfriendInfo = {
+                    name : $("#edit_name").val(),
+                    email :  $("#edit_email").val(),
+                    city : $("#edit_city").val()
+                };
+ 
+                $.ajax({
+                    url : "/friends/update/"+$("#editFriendId").val(),
+                    method : "post",
+                    data : JSON.stringify(updatedfriendInfo),
+                    dataType : "json",
+                    contentType : "application/json",
+                    success : function(res){
+                        console.log(res);
+                        $("#edit_name").val('');
+                        $("#edit_email").val('');
+                        $("#edit_city").val('');
+                        loadFriends();
+                        $("#editBox").hide();
+                    },
+                    error : function(err){
+                        console.log("Error : ", err);
+                    }
+                })
+            })
+            //-----------------------------------------------------------
+            $("#addbtn").on("click", function(){
+                var friend = {
+                    name : $("#username").val(), 
+                    email : $("#email").val(), 
+                    city : $("#city").val()
+                };
+                $.ajax({
+                    url : "/friends",
+                    method : "post",
+                    data : JSON.stringify(friend),
+                    dataType : "json",
+                    contentType : "application/json",
+                    success : function(res){
+                        console.log(res);
+                        $("#username").val('');
+                        $("#email").val('');
+                        $("#city").val('');
+                        loadFriends();
+                        showAddbox = false;
+                        toggleBox();
+                    },
+                    error : function(err){
+                        console.log("Error : ", err);
+                    }
+                })
+            });
+ 
+        });
+ 
+        function loadFriends(){
+            $.ajax({
+                    url : "/friends",
+                    method : "get",
+                    success : function(res){
+                        friendslist = res;
+                        generateGrid();
+                    },
+                    error : function(err){
+                        console.log("Error : ", err);
+                    }
+                })
+        };
+ 
+        function generateGrid(){
+            $("#friendgrid").empty();
+            friendslist.forEach(function(val, idx){
+                $("#friendgrid").append(`
+                <tr>
+                    <td>${ idx + 1 }</td>
+                    <td>${ val.name }</td>
+                    <td>${ val.city }</td>
+                    <td>${ val.email }</td>
+                    <td><button info="${ val._id }" class="btn btn-warning editBtn">Edit</button></td>
+                    <td><button info="${ val._id }" class="btn btn-danger delBtn">Delete</button></td>
+                </tr>
+                `);
+            })
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <button class="btn btn-primary" id="showAddBtn"> Add A New Friend </button>
+        <div id="addBox">
+            <h1>Add Friend</h1>
+            <div class="mb-3">
+                <label for="username" class="form-label">Friend Name : </label>
+                <input class="form-control" id="username" placeholder="Friend's Name">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Friend Mail : </label>
+                <input class="form-control" id="email" placeholder="Friend's eMail">
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">Friend City : </label>
+                <input class="form-control" id="city" placeholder="Friend's city">
+            </div>
+        <div>
+            <button class="btn btn-primary" id="addbtn">Add Friend</button>
+        </div>
+        </div>
+ 
+        <div id="editBox">
+            <h1>Edit Friend's Info</h1>
+            <input type="hidden" id="editFriendId">
+            <div class="mb-3">
+                <label for="edit_name" class="form-label">Friend Name : </label>
+                <input class="form-control" id="edit_name" placeholder="Friend's Name">
+            </div>
+            <div class="mb-3">
+                <label for="edit_email" class="form-label">Friend Mail : </label>
+                <input class="form-control" id="edit_email" placeholder="Friend's eMail">
+            </div>
+            <div class="mb-3">
+                <label for="edit_city" class="form-label">Friend City : </label>
+                <input class="form-control" id="edit_city" placeholder="Friend's city">
+            </div>
+            <div>
+                <button class="btn btn-primary" id="updateInfobtn">Update Friend's Info</button>
+            </div>
+        </div>
+ 
+    <hr/>
+    <table class="table table-respnsive">
+        <thead>
+            <tr>
+                <th>Serial # </th>
+                <th>Friend Name </th>
+                <th>Friend City </th>
+                <th>Friend eMail </th>
+                <th>Edit Details</th>
+                <th>Delete Record </th>
+            </tr>
+        </thead>
+        <tbody id="friendgrid">
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+doctype html
+html(lang="en")
+    head
+        title Your Profile Page
+    body
+        h1 Your Profile / Info
+        p Welcome to your Profile page you are now logged in... 
+        if user 
+            p Your First Name : #{ user.firstName } 
+            p Your Last Name : #{ user.lastName } 
+            p Your eMail : #{ user.email } 
+        a(href="/logout") Logout from your account 

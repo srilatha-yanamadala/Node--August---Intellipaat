@@ -1,0 +1,17 @@
+doctype html
+html(lang="en")
+head
+title Login to access your account 
+body
+h1 Login to your account
+if error
+    p Error : #{error}
+br
+form(method="post")
+    label(for="usermail") Registered Email :
+        input(type="text", name="email", required, id="usermail")
+    br
+    label(for="userpass") Password :
+        input(type="text", name="password", required, id="userpass")
+    br
+    input(type="submit",value="Login") 

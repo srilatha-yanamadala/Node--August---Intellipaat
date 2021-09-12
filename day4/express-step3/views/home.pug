@@ -1,0 +1,17 @@
+doctype html
+html(lang="en")
+head
+title My Express Application
+body
+h1 Welcome to Jade Template
+h2 #{title}
+h2 #{user}
+hr
+form(action="#", method="POST") 
+    label(for="nhero") Add New Hero
+    input(type="text", id="nhero" name="newhero")
+    button(type="submit") Add New Hero
+hr
+ol
+for hero in heroes
+    li #{ hero }
